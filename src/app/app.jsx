@@ -1,10 +1,7 @@
 import {h, Component} from 'preact';
 import './app.scss';
 import FontLoader from "../components/FontLoader";
-import Preview from "../components/Priview";
-import defaultFontUrl from './AdobeVFPrototype.otf';
-import CollectionSelector from "../components/CollectionSelector";
-import VariationSelector from "./VariationSelector";
+import defaultFontUrl from './Staatliches-Regular.ttf';
 
 class App extends Component {
     render() {

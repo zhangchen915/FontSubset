@@ -8,15 +8,13 @@ body{
 }
 
 %border {
-    margin: 25px;
-    border: 1px dashed rgba(255, 255, 255, 0.4);
+    margin: 25px 0;
+    border: 2px dashed rgba(255, 255, 255, 0.6);
     border-radius: 3px;
     overflow: hidden;
 }
 
 .file-drop-area {
-    grid-row: 2;
-    grid-column: 1/2;
     position: relative;
     display: flex;
     align-items: center;
