@@ -11,11 +11,6 @@ class App extends Component {
         return <div id="app-root">
             <div className="app">
                 <FontLoader url={ defaultFontUrl}>
-                    <CollectionSelector>
-                        <VariationSelector>
-                            <Preview />
-                        </VariationSelector>
-                    </CollectionSelector>
                 </FontLoader>
             </div>
         </div>

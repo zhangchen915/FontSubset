@@ -21,6 +21,7 @@ export class PreviewCanvas extends Component {
 
     draw(ctx) {
         let {font, run, fontSize, width, height} = this.props;
+        if(!font) return;
 
         ctx.save();
         ctx.scale(this.state.ratio, this.state.ratio);
