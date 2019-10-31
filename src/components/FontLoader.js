@@ -1,14 +1,15 @@
 import autobind from 'autobind-decorator';
-import {Component, cloneElement, h} from 'preact';
+import {Component, h} from 'preact';
 import fontkit from 'fontkit';
 import blobToBuffer from 'blob-to-buffer';
 import {PreviewCanvas} from "./PreviewCanvas";
-import streamSaver from 'streamsaver'
 import {Button, TextField, Chips, Slider} from 'preact-material-components';
 import 'preact-material-components/Button/style.css';
 import 'preact-material-components/TextField/style.css';
 import 'preact-material-components/Chips/style.css';
 import 'preact-material-components/Slider/style.css';
+
+import './style.scss'
 
 const string = {
     number: '0123456789',
@@ -22,7 +23,7 @@ export default class FontLoader extends Component {
         font: null,
         blob: null,
         text: {
-            input: '',
+            input: 'Hello World',
             lowerCase: '',
             upperCase: '',
             number: ''
@@ -31,9 +32,7 @@ export default class FontLoader extends Component {
     };
 
     componentWillMount() {
-        if (this.props.url) {
-            this.loadURL(this.props.url);
-        }
+        if (this.props.url) this.loadURL(this.props.url);
     }
 
     componentWillReceiveProps(props) {
@@ -60,7 +59,11 @@ export default class FontLoader extends Component {
     loadBlob(blob) {
         blobToBuffer(blob, (err, buffer) => {
             if (err) throw err;
-            this.setState({font: fontkit.create(buffer)});
+            const font = fontkit.create(buffer);
+            this.setState({
+                font,
+                run: font.layout(this.state.text.input)
+            });
         });
     }
 
@@ -70,21 +73,22 @@ export default class FontLoader extends Component {
             text: Object.assign(this.state.text, {input}),
             run: this.state.font.layout(input)
         });
-
-        console.log(this.state.font.getImageForSize(50))
     }
 
     creatSubset() {
-        const run = this.state.font.layout(Object.values(this.state.text).join(''));
-        this.state.font.loca = {};
-        this.state.font.loca.version=1;
+        const allText = Object.values(this.state.text).join('');
+        console.log(this.state.font);
+        if (!allText) return;
+        const run = this.state.font.layout(allText);
         const subset = this.state.font.createSubset();
         run.glyphs.forEach(glyph => subset.includeGlyph(glyph));
-        console.log(this.state.font)
-        const {buffer, bufferOffset, pos} = subset.encodeStream()
-        const blob = new Blob([new Uint8Array(buffer, bufferOffset, pos)], {type: "octet/stream"});
+        const subsetStream = subset.encodeStream();
+        setTimeout(() => {
+            const U8 = subsetStream._readableState.buffer.tail.data;
+            const blob = new Blob([U8], {type: "octet/stream"});
 
-        this.download(window.URL.createObjectURL(blob), 'my-download.ttf')
+            this.download(window.URL.createObjectURL(blob), `${this.state.font.postscriptName}-subset.ttf`)
+        }, 0)
     }
 
     changeFontSize(e) {
@@ -116,7 +120,8 @@ export default class FontLoader extends Component {
                     <input className="file-input" type="file" onChange={e => this.getFile(e)}/>
                 </div>
 
-                <TextField textarea={true} label="裁剪字符" value={this.state.text.input} onInput={this.onTextChange}/>
+                <TextField class="field" textarea={true} label="裁剪字符" value={this.state.text.input}
+                           onInput={this.onTextChange}/>
 
                 <Chips filter>
                     <Chips.Chip onClick={() => this.chipClick('number')}>
@@ -145,13 +150,7 @@ export default class FontLoader extends Component {
 
                 <PreviewCanvas font={this.state.font} run={this.state.run} fontSize={this.state.fontSize}/>
 
-                <Button ripple raised onClick={this.creatSubset}>字体生成</Button>
-
-                {/*<CollectionSelector font={this.font}>*/}
-                {/*    <VariationSelector font={this.font}>*/}
-                {/*        <Preview font={this.font}/>*/}
-                {/*    </VariationSelector>*/}
-                {/*</CollectionSelector>*/}
+                <Button class="button" ripple outlined onClick={this.creatSubset}>✂字体裁剪</Button>
             </div>
         );
     }

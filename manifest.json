@@ -6,6 +6,11 @@
     "default_title": "My Chrome Extension",
     "default_popup": "popup.html"
   },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "manifest_version": 2
 }

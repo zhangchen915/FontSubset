@@ -37,7 +37,7 @@
   "scripts": {
     "start": "parcel src/popup.html",
     "build": "parcel build src/popup.html --no-content-hash && npm run copy:dist",
-    "copy:dist": "cp manifest.json ./dist"
+    "copy:dist": "cp manifest.json icon.png ./dist"
   },
   "repository": {
     "type": "git",
