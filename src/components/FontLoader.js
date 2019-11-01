@@ -11,6 +11,8 @@ import 'preact-material-components/Slider/style.css';
 
 import './style.scss'
 
+import {Writable} from 'readable-stream'
+
 const string = {
     number: '0123456789',
     lowerCase: 'abcdefghigklmnokqrstuvwsyz',
@@ -77,17 +79,32 @@ export default class FontLoader extends Component {
 
     creatSubset() {
         const allText = Object.values(this.state.text).join('');
-        console.log(this.state.font);
+        let allChunk = new Uint8Array();
+
+        const writable = new Writable({
+            write(chunk, encoding, callback) {
+                const mergedArray = new Uint8Array(allChunk.length + chunk.length);
+                mergedArray.set(allChunk);
+                mergedArray.set(chunk, allChunk.length);
+                allChunk = mergedArray;
+                callback(); // clearBuffer
+            }
+        });
+
         if (!allText) return;
         const run = this.state.font.layout(allText);
         const subset = this.state.font.createSubset();
         run.glyphs.forEach(glyph => subset.includeGlyph(glyph));
-        const subsetStream = subset.encodeStream();
-        setTimeout(() => {
-            const U8 = subsetStream._readableState.buffer.tail.data;
-            const blob = new Blob([U8], {type: "octet/stream"});
 
-            this.download(window.URL.createObjectURL(blob), `${this.state.font.postscriptName}-subset.ttf`)
+        setTimeout(() => {
+            console.log(subset)
+            subset.encodeStream().pipe(writable);
+            writable.on('finish', () => {
+                console.log(allChunk)
+                const blob = new Blob([allChunk], {type: "octet/stream"});
+                this.download(window.URL.createObjectURL(blob), `${this.state.font.postscriptName}-subset.ttf`)
+                console.info('写入已完成');
+            });
         }, 0)
     }
 
