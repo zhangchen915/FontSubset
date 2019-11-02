@@ -16,37 +16,9 @@ export class PreviewCanvas extends Component {
     }
 
     componentDidUpdate() {
-        this.draw(this.ctx);
-    }
-
-    draw(ctx) {
-        let {font, run, fontSize, width, height} = this.props;
-        if(!font) return;
-
-        ctx.save();
-        ctx.scale(this.state.ratio, this.state.ratio);
-        ctx.clearRect(0, 0, width, height);
-
-        let scale = 1 / font.unitsPerEm * fontSize;
-        let x = 0;
-        let y = 0;
-
-        ctx.translate(0, 80);
-        ctx.scale(1, -1);
-
-        run.glyphs.forEach((glyph, index) => {
-            let pos = run.positions[index];
-            ctx.save();
-            ctx.translate((x + pos.xOffset) * scale, (y + pos.yOffset) * scale);
-            ctx.beginPath();
-            glyph.render(ctx, fontSize);
-            ctx.restore();
-
-            x += pos.xAdvance;
-            y += pos.yAdvance;
-        });
-
-        ctx.restore();
+        let {font, path, fontSize, width, height} = this.props;
+        this.ctx.clearRect(0, 0, width, height);
+        if(path) path.draw(this.ctx);
     }
 
     render() {

@@ -1,7 +1,6 @@
 import autobind from 'autobind-decorator';
 import {Component, h} from 'preact';
-import fontkit from 'fontkit';
-import blobToBuffer from 'blob-to-buffer';
+import {parse, Font} from 'opentype.js';
 import {PreviewCanvas} from "./PreviewCanvas";
 import {Button, TextField, Chips, Slider} from 'preact-material-components';
 import 'preact-material-components/Button/style.css';
@@ -28,7 +27,7 @@ export default class FontLoader extends Component {
             upperCase: '',
             number: ''
         },
-        fontSize: 46
+        fontSize: 58
     };
 
     componentWillMount() {
@@ -56,43 +55,53 @@ export default class FontLoader extends Component {
         });
     }
 
-    loadBlob(blob) {
-        blobToBuffer(blob, (err, buffer) => {
-            if (err) throw err;
-            const font = fontkit.create(buffer);
-            this.setState({
-                font,
-                run: font.layout(this.state.text.input)
-            });
+    async loadBlob(blob) {
+        const font = parse(await blob.arrayBuffer());
+        this.setState({font}, () => {
+            this.setPath()
+        });
+
+    }
+
+    setPath(text = this.state.text.input, fontSize = this.state.fontSize) {
+        this.setState({
+            path: this.state.font.getPath(text, 0, 80, fontSize)
         });
     }
 
     onTextChange(e) {
-        const input = e.target.value;
-        this.setState({
-            text: Object.assign(this.state.text, {input}),
-            run: this.state.font.layout(input)
-        });
-    }
-
-    creatSubset() {
-        const allText = Object.values(this.state.text).join('');
         console.log(this.state.font);
-        if (!allText) return;
-        const run = this.state.font.layout(allText);
-        const subset = this.state.font.createSubset();
-        run.glyphs.forEach(glyph => subset.includeGlyph(glyph));
-        const subsetStream = subset.encodeStream();
-        setTimeout(() => {
-            const U8 = subsetStream._readableState.buffer.tail.data;
-            const blob = new Blob([U8], {type: "octet/stream"});
-
-            this.download(window.URL.createObjectURL(blob), `${this.state.font.postscriptName}-subset.ttf`)
-        }, 0)
+        const input = e.target.value;
+        this.setState({text: Object.assign(this.state.text, {input})});
+        this.setPath(input)
     }
 
     changeFontSize(e) {
-        this.setState({fontSize: e.target.textContent})
+        const fontSize = e.target.textContent;
+        this.setState({fontSize});
+        this.setPath(undefined, fontSize)
+    }
+
+    creatSubset() {
+        const {font, text} = this.state;
+        let allText = Object.values(text).join('');
+        if (!allText) return;
+        allText = Array.from(new Set(allText.split(''))).join('');
+        const glyphs = font.stringToGlyphs(allText);
+        console.log(font.glyphs.get(0))
+        glyphs.unshift(font.glyphs.get(0));
+        console.log(glyphs)
+        const {ascender, names, unitsPerEm, descender} = font;
+        const subset = new Font({
+            familyName: names.fontFamily.en,
+            styleName: names.fontSubfamily.en,
+            unitsPerEm,
+            ascender,
+            descender,
+            glyphs
+        });
+
+        subset.download()
     }
 
     chipClick(type) {
@@ -148,7 +157,7 @@ export default class FontLoader extends Component {
                     <div>字体大小：{this.state.fontSize}</div>
                 </div>
 
-                <PreviewCanvas font={this.state.font} run={this.state.run} fontSize={this.state.fontSize}/>
+                <PreviewCanvas font={this.state.font} path={this.state.path}/>
 
                 <Button class="button" ripple outlined onClick={this.creatSubset}>✂字体裁剪</Button>
             </div>
