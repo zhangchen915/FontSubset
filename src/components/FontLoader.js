@@ -10,10 +10,12 @@ import 'preact-material-components/Slider/style.css';
 
 import './style.scss'
 
-const string = {
+const lowerCase = 'abcdefghigklmnokqrstuvwsyz';
+const fastInput = {
     number: '0123456789',
-    lowerCase: 'abcdefghigklmnokqrstuvwsyz',
-    comma: ',.$¥'
+    lowerCase,
+    upperCase: lowerCase.toUpperCase(),
+    punctuation: ',.$¥'
 };
 
 @autobind
@@ -60,7 +62,6 @@ export default class FontLoader extends Component {
         this.setState({font}, () => {
             this.setPath()
         });
-
     }
 
     setPath(text = this.state.text.input, fontSize = this.state.fontSize) {
@@ -70,7 +71,6 @@ export default class FontLoader extends Component {
     }
 
     onTextChange(e) {
-        console.log(this.state.font);
         const input = e.target.value;
         this.setState({text: Object.assign(this.state.text, {input})});
         this.setPath(input)
@@ -88,9 +88,8 @@ export default class FontLoader extends Component {
         if (!allText) return;
         allText = Array.from(new Set(allText.split(''))).join('');
         const glyphs = font.stringToGlyphs(allText);
-        console.log(font.glyphs.get(0))
         glyphs.unshift(font.glyphs.get(0));
-        console.log(glyphs)
+
         const {ascender, names, unitsPerEm, descender} = font;
         const subset = new Font({
             familyName: names.fontFamily.en,
@@ -107,17 +106,9 @@ export default class FontLoader extends Component {
     chipClick(type) {
         this.setState({
             text: Object.assign(this.state.text, {
-                [type]: this.state.text[type] ? '' : string[type]
+                [type]: this.state.text[type] ? '' : fastInput[type]
             }),
         });
-    }
-
-
-    download(url, filename) {
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.click()
     }
 
     render() {
@@ -126,7 +117,7 @@ export default class FontLoader extends Component {
                 <div className="file-drop-area">
                     <span className="fake-btn">选择字体文件</span>
                     <span className="file-msg">{this.state.fileHint || '或将文件拖放到这里'}</span>
-                    <input className="file-input" type="file" onChange={e => this.getFile(e)}/>
+                    <input className="file-input" type="file" accept=".ttf, .otf" onChange={e => this.getFile(e)}/>
                 </div>
 
                 <TextField class="field" textarea={true} label="裁剪字符" value={this.state.text.input}
@@ -141,11 +132,11 @@ export default class FontLoader extends Component {
                         <Chips.Checkmark/>
                         <Chips.Text>英文大写</Chips.Text>
                     </Chips.Chip>
-                    <Chips.Chip onClick={() => this.chipClick('upperCase')}>
+                    <Chips.Chip onClick={() => this.chipClick('lowerCase')}>
                         <Chips.Checkmark/>
                         <Chips.Text>英文小写</Chips.Text>
                     </Chips.Chip>
-                    <Chips.Chip onClick={() => this.chipClick('upperCase')}>
+                    <Chips.Chip onClick={() => this.chipClick('punctuation')}>
                         <Chips.Checkmark/>
                         <Chips.Text>常用标点</Chips.Text>
                     </Chips.Chip>

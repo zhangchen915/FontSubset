@@ -1,7 +1,7 @@
 {
-  "name": "preact-chrome-extension",
+  "name": "FontSubset",
   "version": "1.0.0",
-  "description": "Scaffolding for a Chrome extension built with [Preact](https://preactjs.com).",
+  "description": "Font ✂",
   "main": "index.js",
   "keywords": [],
   "author": "",
@@ -33,18 +33,15 @@
     "preact": "^10.0.4",
     "streamsaver": "^2.0.3"
   },
-  "browserslist": "> 1%, not ie 11, not op_mini all",
+  "browserslist": "chrome > 49",
   "scripts": {
     "start": "parcel src/popup.html",
-    "build": "parcel build src/popup.html --no-content-hash --experimental-scope-hoisting && npm run copy:dist",
+    "build": "parcel build src/popup.html --no-content-hash --no-source-maps && npm run copy:dist",
     "copy:dist": "cp manifest.json icon.png ./dist"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drewctate/preact-chrome-extension-starter.git"
+    "url": "git+https://github.com/zhangchen915/FontSubset.git"
   },
-  "bugs": {
-    "url": "https://github.com/drewctate/preact-chrome-extension-starter/issues"
-  },
-  "homepage": "https://github.com/drewctate/preact-chrome-extension-starter#readme"
+  "homepage": "https://github.com/zhangchen915/FontSubset"
 }
