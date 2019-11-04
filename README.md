@@ -1,6 +1,6 @@
-# Preact Chrome Extension Starter
+# FontSubset ✂ 
 
-Scaffolding for a Chrome extension built with [Preact](https://preactjs.com).
+Generate font Subset in Chrome extension.
 
 ## Getting Started
 ### Setup

@@ -1,7 +1,6 @@
 import autobind from 'autobind-decorator';
 import {Component, h} from 'preact';
-import fontkit from 'fontkit';
-import blobToBuffer from 'blob-to-buffer';
+import {parse, Font} from 'opentype.js';
 import {PreviewCanvas} from "./PreviewCanvas";
 import {Button, TextField, Chips, Slider} from 'preact-material-components';
 import 'preact-material-components/Button/style.css';
@@ -11,12 +10,12 @@ import 'preact-material-components/Slider/style.css';
 
 import './style.scss'
 
-import {Writable} from 'readable-stream'
-
-const string = {
+const lowerCase = 'abcdefghigklmnokqrstuvwsyz';
+const fastInput = {
     number: '0123456789',
-    lowerCase: 'abcdefghigklmnokqrstuvwsyz',
-    comma: ',.$¥'
+    lowerCase,
+    upperCase: lowerCase.toUpperCase(),
+    punctuation: ',.$¥'
 };
 
 @autobind
@@ -30,7 +29,7 @@ export default class FontLoader extends Component {
             upperCase: '',
             number: ''
         },
-        fontSize: 46
+        fontSize: 58
     };
 
     componentWillMount() {
@@ -58,74 +57,58 @@ export default class FontLoader extends Component {
         });
     }
 
-    loadBlob(blob) {
-        blobToBuffer(blob, (err, buffer) => {
-            if (err) throw err;
-            const font = fontkit.create(buffer);
-            this.setState({
-                font,
-                run: font.layout(this.state.text.input)
-            });
+    async loadBlob(blob) {
+        const font = parse(await blob.arrayBuffer());
+        this.setState({font}, () => {
+            this.setPath()
+        });
+    }
+
+    setPath(text = this.state.text.input, fontSize = this.state.fontSize) {
+        this.setState({
+            path: this.state.font.getPath(text, 0, 80, fontSize)
         });
     }
 
     onTextChange(e) {
         const input = e.target.value;
-        this.setState({
-            text: Object.assign(this.state.text, {input}),
-            run: this.state.font.layout(input)
-        });
-    }
-
-    creatSubset() {
-        const allText = Object.values(this.state.text).join('');
-        let allChunk = new Uint8Array();
-
-        const writable = new Writable({
-            write(chunk, encoding, callback) {
-                const mergedArray = new Uint8Array(allChunk.length + chunk.length);
-                mergedArray.set(allChunk);
-                mergedArray.set(chunk, allChunk.length);
-                allChunk = mergedArray;
-                callback(); // clearBuffer
-            }
-        });
-
-        if (!allText) return;
-        const run = this.state.font.layout(allText);
-        const subset = this.state.font.createSubset();
-        run.glyphs.forEach(glyph => subset.includeGlyph(glyph));
-
-        setTimeout(() => {
-            console.log(subset)
-            subset.encodeStream().pipe(writable);
-            writable.on('finish', () => {
-                console.log(allChunk)
-                const blob = new Blob([allChunk], {type: "octet/stream"});
-                this.download(window.URL.createObjectURL(blob), `${this.state.font.postscriptName}-subset.ttf`)
-                console.info('写入已完成');
-            });
-        }, 0)
+        this.setState({text: Object.assign(this.state.text, {input})});
+        this.setPath(input)
     }
 
     changeFontSize(e) {
-        this.setState({fontSize: e.target.textContent})
+        const fontSize = e.target.textContent;
+        this.setState({fontSize});
+        this.setPath(undefined, fontSize)
+    }
+
+    creatSubset() {
+        const {font, text} = this.state;
+        let allText = Object.values(text).join('');
+        if (!allText) return;
+        allText = Array.from(new Set(allText.split(''))).join('');
+        const glyphs = font.stringToGlyphs(allText);
+        glyphs.unshift(font.glyphs.get(0));
+
+        const {ascender, names, unitsPerEm, descender} = font;
+        const subset = new Font({
+            familyName: names.fontFamily.en,
+            styleName: names.fontSubfamily.en,
+            unitsPerEm,
+            ascender,
+            descender,
+            glyphs
+        });
+
+        subset.download()
     }
 
     chipClick(type) {
         this.setState({
             text: Object.assign(this.state.text, {
-                [type]: this.state.text[type] ? '' : string[type]
+                [type]: this.state.text[type] ? '' : fastInput[type]
             }),
         });
-    }
-
-
-    download(url, filename) {
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.click()
     }
 
     render() {
@@ -134,7 +117,7 @@ export default class FontLoader extends Component {
                 <div className="file-drop-area">
                     <span className="fake-btn">选择字体文件</span>
                     <span className="file-msg">{this.state.fileHint || '或将文件拖放到这里'}</span>
-                    <input className="file-input" type="file" onChange={e => this.getFile(e)}/>
+                    <input className="file-input" type="file" accept=".ttf, .otf" onChange={e => this.getFile(e)}/>
                 </div>
 
                 <TextField class="field" textarea={true} label="裁剪字符" value={this.state.text.input}
@@ -149,11 +132,11 @@ export default class FontLoader extends Component {
                         <Chips.Checkmark/>
                         <Chips.Text>英文大写</Chips.Text>
                     </Chips.Chip>
-                    <Chips.Chip onClick={() => this.chipClick('upperCase')}>
+                    <Chips.Chip onClick={() => this.chipClick('lowerCase')}>
                         <Chips.Checkmark/>
                         <Chips.Text>英文小写</Chips.Text>
                     </Chips.Chip>
-                    <Chips.Chip onClick={() => this.chipClick('upperCase')}>
+                    <Chips.Chip onClick={() => this.chipClick('punctuation')}>
                         <Chips.Checkmark/>
                         <Chips.Text>常用标点</Chips.Text>
                     </Chips.Chip>
@@ -165,7 +148,7 @@ export default class FontLoader extends Component {
                     <div>字体大小：{this.state.fontSize}</div>
                 </div>
 
-                <PreviewCanvas font={this.state.font} run={this.state.run} fontSize={this.state.fontSize}/>
+                <PreviewCanvas font={this.state.font} path={this.state.path}/>
 
                 <Button class="button" ripple outlined onClick={this.creatSubset}>✂字体裁剪</Button>
             </div>
