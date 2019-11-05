@@ -2,6 +2,8 @@
 
 Generate font Subset in Chrome extension.
 
+![](./FontCut.jpg)
+
 ## Getting Started
 ### Setup
 Run `npm i` to install dependencies. 
