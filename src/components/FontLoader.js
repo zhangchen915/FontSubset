@@ -8,6 +8,8 @@ import 'preact-material-components/TextField/style.css';
 import 'preact-material-components/Chips/style.css';
 import 'preact-material-components/Slider/style.css';
 
+import {sfnt2woff} from '../lib/woff'
+
 import './style.scss'
 
 const lowerCase = 'abcdefghigklmnokqrstuvwsyz';
@@ -100,7 +102,21 @@ export default class FontLoader extends Component {
             glyphs
         });
 
-        subset.download()
+        const U8 = subset.toArrayBuffer();
+        const blob = new Blob([U8], {type: "octet/stream"});
+        this.download(window.URL.createObjectURL(blob), `${names.fontFamily.en}-subset.ttf`);
+
+        const woffBlob = new Blob([sfnt2woff(U8)], {type: "octet/stream"});
+        setTimeout(() => {
+            this.download(window.URL.createObjectURL(woffBlob), `${names.fontFamily.en}-subset.woff`);
+        }, 1000)
+    }
+
+    download(url, filename) {
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.click()
     }
 
     chipClick(type) {
