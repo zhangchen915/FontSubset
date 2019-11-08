@@ -2,11 +2,13 @@ import autobind from 'autobind-decorator';
 import {Component, h} from 'preact';
 import {parse, Font} from 'opentype.js';
 import {PreviewCanvas} from "./PreviewCanvas";
-import {Button, TextField, Chips, Slider} from 'preact-material-components';
+import {Button, TextField, Chips, Slider, Checkbox, FormField} from 'preact-material-components';
 import 'preact-material-components/Button/style.css';
 import 'preact-material-components/TextField/style.css';
 import 'preact-material-components/Chips/style.css';
 import 'preact-material-components/Slider/style.css';
+import 'preact-material-components/Checkbox/style.css';
+import 'preact-material-components/FormField/style.css';
 
 import {sfnt2woff} from '../lib/woff'
 
@@ -31,7 +33,8 @@ export default class FontLoader extends Component {
             upperCase: '',
             number: ''
         },
-        fontSize: 58
+        fontSize: 58,
+        WOFF: true,
     };
 
     componentWillMount() {
@@ -93,9 +96,10 @@ export default class FontLoader extends Component {
         glyphs.unshift(font.glyphs.get(0));
 
         const {ascender, names, unitsPerEm, descender} = font;
+        const fontFamily = names.fontFamily.en;
         const subset = new Font({
-            familyName: names.fontFamily.en,
-            styleName: names.fontSubfamily.en,
+            familyName: fontFamily,
+            styleName: fontFamily,
             unitsPerEm,
             ascender,
             descender,
@@ -104,12 +108,14 @@ export default class FontLoader extends Component {
 
         const U8 = subset.toArrayBuffer();
         const blob = new Blob([U8], {type: "octet/stream"});
-        this.download(window.URL.createObjectURL(blob), `${names.fontFamily.en}-subset.ttf`);
+        this.download(window.URL.createObjectURL(blob), `${fontFamily}-subset.ttf`);
 
-        const woffBlob = new Blob([sfnt2woff(U8)], {type: "octet/stream"});
-        setTimeout(() => {
-            this.download(window.URL.createObjectURL(woffBlob), `${names.fontFamily.en}-subset.woff`);
-        }, 1000)
+        if (this.state.WOFF) {
+            const woffBlob = new Blob([sfnt2woff(U8)], {type: "octet/stream"});
+            setTimeout(() => {
+                this.download(window.URL.createObjectURL(woffBlob), `${fontFamily}-subset.woff`);
+            }, 1000)
+        }
     }
 
     download(url, filename) {
@@ -124,6 +130,17 @@ export default class FontLoader extends Component {
             text: Object.assign(this.state.text, {
                 [type]: this.state.text[type] ? '' : fastInput[type]
             }),
+        });
+    }
+
+    copyStyle() {
+        const name = this.state.font.names.fontFamily.en;
+        navigator.clipboard.writeText(`
+        @font-face {
+            font-family: '${name}';
+            src: url('./${name}.ttf') format('ttf'),
+            url('./${name}.woff') format('woff')
+         }`).then(res => {
         });
     }
 
@@ -158,15 +175,36 @@ export default class FontLoader extends Component {
                     </Chips.Chip>
                 </Chips>
 
+                <div class="control">
+                    <FormField>
+                        <Checkbox id="WOFF"
+                                  checked={this.state.WOFF}
+                                  onClick={() => {
+                                      this.setState({
+                                          WOFF: !this.state.WOFF
+                                      })
+                                  }}/>
+                        <label for="WOFF" id="basic-checkbox-label">导出WOFF格式</label>
+                    </FormField>
+                    <FormField class="fontSizeControl">
+                        <div className="slider">
+                            <Slider step={2} value={this.state.fontSize} mix={8} max={100} discrete
+                                    onChange={this.changeFontSize}/>
+                        </div>
+                        <label>字体大小：{this.state.fontSize}px</label>
+                    </FormField>
+                </div>
+
                 <div>
-                    <Slider step={2} value={this.state.fontSize} mix={8} max={100} discrete
-                            onChange={this.changeFontSize}/>
-                    <div>字体大小：{this.state.fontSize}</div>
+
                 </div>
 
                 <PreviewCanvas font={this.state.font} path={this.state.path}/>
 
-                <Button class="button" ripple outlined onClick={this.creatSubset}>✂字体裁剪</Button>
+                <div class="footer">
+                    <Button class="button" ripple outlined onClick={this.creatSubset}>✂字体裁剪</Button>
+                    <Button class="button" ripple outlined onClick={this.copyStyle}>复制CSS</Button>
+                </div>
             </div>
         );
     }

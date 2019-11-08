@@ -7,6 +7,28 @@ canvas{
   margin: 20px auto;
 }
 
-.button{
-  width: 100%;
+.control{
+  display: flex;
+  justify-content: space-between;
+  .fontSizeControl{
+    flex: 1;
+    .slider{
+      width: 100%;
+      margin-left: 20px;
+      display: inline-block;
+    }
+  }
+}
+
+.footer{
+  display: flex;
+  justify-content: space-between;
+  .button{
+    &:first-child{
+      width: 62%;
+    }
+    &:last-child{
+      width: 35%;
+    }
+  }
 }
