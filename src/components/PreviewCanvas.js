@@ -18,17 +18,23 @@ export class PreviewCanvas extends Component {
     componentDidUpdate() {
         let {font, path, fontSize, width, height} = this.props;
         this.ctx.clearRect(0, 0, width, height);
-        if(path) path.draw(this.ctx);
+        if (!path) return;
+        this.canvas.width = path.getBoundingBox().x2;
+        path.draw(this.ctx);
+        setTimeout(() => {
+            this.canvas.scrollIntoView({behavior: "smooth", block: "center", inline: "end"});
+        }, 0)
     }
 
     render() {
         let {width, height} = this.props;
         return (
-            <canvas
-                width={width * this.state.ratio}
-                height={height * this.state.ratio}
-                style={{width, height}}
-                ref={c => this.canvas = c} />
+            <div class="canvasWrap">
+                <canvas
+                    width={width * this.state.ratio}
+                    height={height * this.state.ratio}
+                    ref={c => this.canvas = c}/>
+            </div>
         );
     }
 }

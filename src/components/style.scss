@@ -1,18 +1,52 @@
-.field{
+body {
+  width: 500px;
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+  padding: 1px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(#6200ee, .5);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  opacity: .3;
+  border-radius: 20px;
+}
+
+.field {
   width: 100%;
 }
 
-canvas{
-  display: block;
-  margin: 20px auto;
+textarea {
+  resize: vertical;
 }
 
-.control{
+.canvasWrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 20px 0;
+  box-sizing: border-box;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+.control {
   display: flex;
   justify-content: space-between;
-  .fontSizeControl{
+
+  .fontSizeControl {
     flex: 1;
-    .slider{
+
+    .slider {
       width: 100%;
       margin-left: 20px;
       display: inline-block;
@@ -20,14 +54,16 @@ canvas{
   }
 }
 
-.footer{
+.footer {
   display: flex;
   justify-content: space-between;
-  .button{
-    &:first-child{
+
+  .button {
+    &:first-child {
       width: 62%;
     }
-    &:last-child{
+
+    &:last-child {
       width: 35%;
     }
   }
