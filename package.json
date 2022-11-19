@@ -19,12 +19,12 @@
     "cssnano": "^4.1.10",
     "node-sass": "^4.12.0",
     "preact-material-components": "^1.6.1",
-    "resolve-url-loader": "^3.1.0",
+    "resolve-url-loader": "^5.0.0",
     "sass": "^1.23.1",
     "sass-loader": "^8.0.0",
     "style-loader": "^1.0.0",
     "webpack": "^4.39.3",
-    "webpack-cli": "^3.3.7"
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "autobind-decorator": "^2.4.0",
