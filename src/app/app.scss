@@ -3,6 +3,10 @@ body{
     background-size: cover;
 }
 
+:root{
+    --mdc-theme-secondary: #6200ee
+}
+
 .mdc-text-field label{
     background-color: transparent!important;
 }

@@ -1,7 +1,7 @@
 import {h, Component} from 'preact';
 import './app.scss';
 import FontLoader from "../components/FontLoader";
-import defaultFontUrl from './Staatliches-Regular.ttf';
+import defaultFontUrl from 'url:./Staatliches-Regular.ttf';
 
 class App extends Component {
     render() {
