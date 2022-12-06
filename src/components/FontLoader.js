@@ -14,7 +14,7 @@ import {sfnt2woff} from '../lib/woff'
 
 import './style.scss'
 
-const lowerCase = 'abcdefghigklmnokqrstuvwsyz';
+const lowerCase = 'abcdefghijklmnopqrstuvwxyz';
 const fastInput = {
     number: '0123456789',
     lowerCase,
